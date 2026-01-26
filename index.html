@@ -301,7 +301,7 @@
         // --- Settings Modal ---
         const SettingsModal = ({ config, onSaveConfig, onClose }) => {
             const [localConfig, setLocalConfig] = React.useState(config);
-            const [activeTab, setActiveTab] = React.useState('planos'); // planos, designers, statuses
+            const [activeTab, setActiveTab] = React.useState('planos'); // planos, designers, statuses, qr
             
             const [newItemName, setNewItemName] = React.useState('');
             const [newStatusColor, setNewStatusColor] = React.useState('#000000');
@@ -467,61 +467,84 @@
                             >
                                 Estados
                             </button>
+                            <button 
+                                onClick={() => switchTab('qr')}
+                                className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'qr' ? 'border-corporate-cyan text-corporate-navy' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                            >
+                                QR
+                            </button>
                         </div>
 
                         <div className="p-6 flex-1 overflow-hidden flex flex-col">
-                            <div className="flex gap-2 mb-4">
-                                <input 
-                                    type="text" 
-                                    placeholder={activeTab === 'statuses' ? 'Nombre del estado' : `Nuevo ${activeTab === 'planos' ? 'plano' : 'diseñador'}`}
-                                    value={newItemName}
-                                    onChange={(e) => setNewItemName(e.target.value)}
-                                    className="flex-1 rounded-lg border-gray-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-corporate-cyan focus:border-corporate-cyan outline-none bg-white text-gray-900"
-                                />
-                                {activeTab === 'statuses' && (
-                                    <div className="relative">
-                                        <input 
-                                            type="color" 
-                                            value={newStatusColor}
-                                            onChange={(e) => setNewStatusColor(e.target.value)}
-                                            className="w-10 h-10 rounded-lg cursor-pointer border border-gray-300"
-                                            title="Elegir color"
+                            {activeTab === 'qr' ? (
+                                <div className="flex flex-col items-center justify-center h-full animate-fade-in">
+                                    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4">
+                                        <img 
+                                            src="https://lh3.googleusercontent.com/d/1W2Xq8ks-vExsRqxtMPgs9CNGPWhmAHqx" 
+                                            alt="Código QR de acceso" 
+                                            className="w-64 h-64 object-contain"
                                         />
                                     </div>
-                                )}
-                                
-                                {editingIndex !== null ? (
-                                    <>
-                                        <button 
-                                            onClick={handleSaveItem}
-                                            className="bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                                            title="Guardar edición"
-                                        >
-                                            <Check className="w-5 h-5" />
-                                        </button>
-                                        <button 
-                                            onClick={handleCancelEdit}
-                                            className="bg-gray-400 text-white px-3 py-2 rounded-lg hover:bg-gray-500 transition-colors"
-                                            title="Cancelar edición"
-                                        >
-                                            <X className="w-5 h-5" />
-                                        </button>
-                                    </>
-                                ) : (
-                                    <button 
-                                        onClick={handleSaveItem}
-                                        className="bg-corporate-cyan text-white px-4 py-2 rounded-lg hover:bg-cyan-600 transition-colors"
-                                        title="Añadir nuevo"
-                                    >
-                                        <Plus className="w-5 h-5" />
-                                    </button>
-                                )}
-                            </div>
-                            
-                            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                                {editingIndex !== null ? 'Editando elemento...' : 'Lista Actual'}
-                            </h3>
-                            {renderList()}
+                                    <p className="text-gray-500 text-sm text-center max-w-xs">
+                                        Escanea este código QR para acceder rápidamente a la aplicación desde tu móvil.
+                                    </p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="flex gap-2 mb-4">
+                                        <input 
+                                            type="text" 
+                                            placeholder={activeTab === 'statuses' ? 'Nombre del estado' : `Nuevo ${activeTab === 'planos' ? 'plano' : 'diseñador'}`}
+                                            value={newItemName}
+                                            onChange={(e) => setNewItemName(e.target.value)}
+                                            className="flex-1 rounded-lg border-gray-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-corporate-cyan focus:border-corporate-cyan outline-none bg-white text-gray-900"
+                                        />
+                                        {activeTab === 'statuses' && (
+                                            <div className="relative">
+                                                <input 
+                                                    type="color" 
+                                                    value={newStatusColor}
+                                                    onChange={(e) => setNewStatusColor(e.target.value)}
+                                                    className="w-10 h-10 rounded-lg cursor-pointer border border-gray-300"
+                                                    title="Elegir color"
+                                                />
+                                            </div>
+                                        )}
+                                        
+                                        {editingIndex !== null ? (
+                                            <>
+                                                <button 
+                                                    onClick={handleSaveItem}
+                                                    className="bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                                                    title="Guardar edición"
+                                                >
+                                                    <Check className="w-5 h-5" />
+                                                </button>
+                                                <button 
+                                                    onClick={handleCancelEdit}
+                                                    className="bg-gray-400 text-white px-3 py-2 rounded-lg hover:bg-gray-500 transition-colors"
+                                                    title="Cancelar edición"
+                                                >
+                                                    <X className="w-5 h-5" />
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <button 
+                                                onClick={handleSaveItem}
+                                                className="bg-corporate-cyan text-white px-4 py-2 rounded-lg hover:bg-cyan-600 transition-colors"
+                                                title="Añadir nuevo"
+                                            >
+                                                <Plus className="w-5 h-5" />
+                                            </button>
+                                        )}
+                                    </div>
+                                    
+                                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                                        {editingIndex !== null ? 'Editando elemento...' : 'Lista Actual'}
+                                    </h3>
+                                    {renderList()}
+                                </>
+                            )}
                         </div>
 
                         <div className="p-5 border-t border-gray-100 bg-gray-50 rounded-b-xl flex justify-end gap-3">
