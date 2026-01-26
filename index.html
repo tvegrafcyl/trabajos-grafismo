@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trabajos de grafismo</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#2563eb',
+              secondary: '#475569',
+              corporate: {
+                orange: '#ff8000',
+                cyan: '#00dbff',
+                navy: '#02064f',
+              }
+            }
+          }
+        }
+      }
+    </script>
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        /* Custom scrollbar for better UX */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Animation for calendar popup */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+        
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            overflow: hidden;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 50%;
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // ==========================================
+        // 1. ICONS
+        // ==========================================
+        const Icon = ({ d, className }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d={d} />
+            </svg>
+        );
+
+        const Plus = (props) => <Icon d="M5 12h14M12 5v14" {...props} />;
+        const Search = (props) => <Icon d="m21 21-4.3-4.3M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16" {...props} />;
+        const Filter = (props) => <Icon d="M22 3H2l8 9.46V19l4 2v-8.54Z" {...props} />;
+        const Calendar = (props) => <Icon d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" {...props} />;
+        const User = (props) => <Icon d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" {...props} />;
+        const Camera = (props) => <Icon d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" {...props} />;
+        const CheckCircle2 = (props) => <Icon d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM9 12l2 2 4-4" {...props} />;
+        const Clock = (props) => <Icon d="M12 6v6l4 2M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z" {...props} />;
+        const RotateCw = (props) => <Icon d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8M21 3v5h-5" {...props} />;
+        const Edit3 = (props) => <Icon d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" {...props} />;
+        const Eye = (props) => <Icon d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" {...props} />;
+        const RefreshCw = (props) => <Icon d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8M21 3v5h-5M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16M3 21v-5h5" {...props} />;
+        const X = (props) => <Icon d="M18 6 6 18M6 6l12 12" {...props} />;
+        const Upload = (props) => <Icon d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" {...props} />;
+        const ImageIcon = (props) => <Icon d="M18 22H4a2 2 0 0 1-2-2V6a4 4 0 0 1 4-4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2ZM18 2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2V4a2 2 0 0 0-2-2ZM6 4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10V4Z" {...props} />; 
+        const Hourglass = (props) => <Icon d="M5 22h14M5 2h14M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22" {...props} />;
+        const ChevronLeft = (props) => <Icon d="m15 18-6-6 6-6" {...props} />;
+        const ChevronRight = (props) => <Icon d="m9 18 6-6-6-6" {...props} />;
+        const ChevronUp = (props) => <Icon d="m18 15-6-6-6 6" {...props} />;
+        const ChevronDown = (props) => <Icon d="m6 9 6 6 6-6" {...props} />;
+        const Settings = (props) => <Icon d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.39a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" {...props} />;
+        const Trash2 = (props) => <Icon d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2M10 11v6M14 11v6" {...props} />;
+        const Check = (props) => <Icon d="M20 6 9 17l-5-5" {...props} />;
+        const Pencil = (props) => <Icon d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" {...props} />;
+
+        // ==========================================
+        // 2. CONSTANTS & DEFAULTS
+        // ==========================================
+        const DEFAULT_PLANOS = ['Gráfico', 'P1', 'P2', 'P3', 'P4', 'Titular', 'P5 Abierto', 'P5 Cerrado', 'P6', 'P7', 'P8'];
+        const DEFAULT_DESIGNERS = ['Pendiente', 'Urueña', 'Lobato', 'Otro'];
+        
+        // Colores predeterminados (mapa nombre -> hex)
+        const DEFAULT_STATUSES = [
+            { name: 'En proceso', color: '#2563eb' }, // blue-600
+            { name: 'Realizado', color: '#f59e0b' }, // amber-500
+            { name: 'Verificado', color: '#059669' }, // emerald-600
+            { name: 'Repetir', color: '#dc2626' } // red-600
+        ];
+
+        const DISTAL_LOGO_URL = "https://lh3.googleusercontent.com/d/1ganFwnSCmmwBdUC5n1ODFcttqILLbHbc";
+        const CYL_LOGO_URL = "https://lh3.googleusercontent.com/d/1UdML_DxivuflqeJ5Ux78kgOy_2fN1kAC";
+        
+        const ITEMS_PER_PAGE = 6;
+
+        // ==========================================
+        // 3. HELPERS
+        // ==========================================
+        const formatDate = (date) => {
+            if (!date) return '';
+            const d = new Date(date);
+            if (isNaN(d.getTime())) return '';
+            const day = d.getDate().toString().padStart(2, '0');
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}-${month}-${year}`;
+        };
+
+        const parseDateString = (dateStr) => {
+            if (!dateStr) return null;
+            const [day, month, year] = dateStr.split('-').map(Number);
+            if (!day || !month || !year) return null;
+            return new Date(year, month - 1, day);
+        };
+
+        // ==========================================
+        // 4. STORAGE SERVICE (DATA)
+        // ==========================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbyRVWpJVuDWIvNM3UXU095ZtF3IWxFJYq2O9p2lPSFsrx_V-YObFS1LsKMGpVU_N3A/exec"; 
+
+        const StorageService = {
+            async getAll() {
+                if (API_URL) {
+                    try {
+                        const response = await fetch(`${API_URL}?t=${Date.now()}`);
+                        if (response.ok) {
+                            const textData = await response.text();
+                            try {
+                                const data = JSON.parse(textData);
+                                return Array.isArray(data) ? data : [];
+                            } catch (jsonError) {
+                                console.error("Error al convertir a JSON:", jsonError);
+                                return [];
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Fallo de red:", e);
+                    }
+                }
+                return [];
+            },
+
+            async save(element) {
+                if (API_URL) {
+                    try {
+                        await fetch(API_URL, {
+                            method: 'POST',
+                            mode: 'no-cors', 
+                            body: JSON.stringify(element)
+                        });
+                    } catch (e) {
+                        console.error("Fallo al guardar:", e);
+                    }
+                }
+                return element;
+            }
+        };
+
+        // ==========================================
+        // 5. COMPONENTS
+        // ==========================================
+        
+        // --- CalendarWidget ---
+        const CalendarWidget = ({ selectedDateStr, onChange, onClose }) => {
+            const [viewDate, setViewDate] = React.useState(() => {
+                const parsed = parseDateString(selectedDateStr);
+                return parsed || new Date();
+            });
+
+            const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+            const getDaysInMonth = (year, month) => {
+                return new Date(year, month + 1, 0).getDate();
+            };
+
+            const getFirstDayOfMonth = (year, month) => {
+                const day = new Date(year, month, 1).getDay();
+                return day === 0 ? 6 : day - 1;
+            };
+
+            const handlePrevMonth = (e) => {
+                e.stopPropagation();
+                setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
+            };
+
+            const handleNextMonth = (e) => {
+                e.stopPropagation();
+                setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
+            };
+
+            const handleDayClick = (day) => {
+                const newDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
+                onChange(formatDate(newDate));
+                onClose();
+            };
+
+            const handleToday = () => {
+                onChange(formatDate(new Date()));
+                onClose();
+            };
+            
+            const handleClear = () => {
+                onChange('');
+                onClose();
+            };
+
+            const daysInMonth = getDaysInMonth(viewDate.getFullYear(), viewDate.getMonth());
+            const firstDay = getFirstDayOfMonth(viewDate.getFullYear(), viewDate.getMonth());
+            const blanks = Array.from({ length: firstDay }, (_, i) => i);
+            const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+            return (
+                <div 
+                    className="absolute top-full left-0 mt-2 z-50 bg-white rounded-lg shadow-xl border border-gray-200 p-4 w-[300px] animate-fade-in"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div className="flex justify-between items-center mb-4">
+                        <span className="text-gray-900 font-bold capitalize">
+                            {months[viewDate.getMonth()]} de {viewDate.getFullYear()}
+                        </span>
+                        <div className="flex gap-2">
+                            <button onClick={handlePrevMonth} className="p-1 hover:bg-gray-100 rounded-full">
+                                <ChevronUp className="w-5 h-5 rotate-[-90deg]" />
+                            </button>
+                            <button onClick={handleNextMonth} className="p-1 hover:bg-gray-100 rounded-full">
+                                <ChevronDown className="w-5 h-5 rotate-[-90deg]" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-7 mb-2 text-center">
+                        {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(day => (
+                            <div key={day} className="text-xs font-medium text-gray-500 py-1">
+                                {day}
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="grid grid-cols-7 gap-1 text-center mb-4">
+                        {blanks.map(i => (
+                            <div key={`blank-${i}`} className="h-8"></div>
+                        ))}
+                        {days.map(day => {
+                            const dateStr = formatDate(new Date(viewDate.getFullYear(), viewDate.getMonth(), day));
+                            const isSelected = selectedDateStr === dateStr;
+                            return (
+                                <button
+                                    key={day}
+                                    onClick={() => handleDayClick(day)}
+                                    className={`
+                                        h-8 w-8 rounded-full flex items-center justify-center text-sm transition-colors mx-auto
+                                        ${isSelected ? 'bg-primary text-white font-bold' : 'hover:bg-gray-100 text-gray-700'}
+                                    `}
+                                >
+                                    {day}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                        <button onClick={handleClear} className="text-primary text-sm font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">Borrar</button>
+                        <button onClick={handleToday} className="text-primary text-sm font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">Hoy</button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Settings Modal ---
+        const SettingsModal = ({ config, onSaveConfig, onClose }) => {
+            const [localConfig, setLocalConfig] = React.useState(config);
+            const [activeTab, setActiveTab] = React.useState('planos'); // planos, designers, statuses
+            
+            const [newItemName, setNewItemName] = React.useState('');
+            const [newStatusColor, setNewStatusColor] = React.useState('#000000');
+            const [editingIndex, setEditingIndex] = React.useState(null);
+
+            const handleSaveItem = () => {
+                if (!newItemName.trim()) return;
+                
+                setLocalConfig(prev => {
+                    const newConfig = { ...prev };
+                    
+                    if (activeTab === 'planos') {
+                        if (editingIndex !== null) {
+                            // Edit
+                             newConfig.planos = [...prev.planos];
+                             newConfig.planos[editingIndex] = newItemName;
+                        } else {
+                            // Add
+                            if (!prev.planos.includes(newItemName)) {
+                                newConfig.planos = [...prev.planos, newItemName];
+                            }
+                        }
+                    } else if (activeTab === 'designers') {
+                        if (editingIndex !== null) {
+                            // Edit
+                            newConfig.designers = [...prev.designers];
+                            newConfig.designers[editingIndex] = newItemName;
+                        } else {
+                            // Add
+                            if (!prev.designers.includes(newItemName)) {
+                                newConfig.designers = [...prev.designers, newItemName];
+                            }
+                        }
+                    } else if (activeTab === 'statuses') {
+                        const newStatus = { name: newItemName, color: newStatusColor };
+                        if (editingIndex !== null) {
+                            // Edit
+                            newConfig.statuses = [...prev.statuses];
+                            newConfig.statuses[editingIndex] = newStatus;
+                        } else {
+                            // Add
+                            if (!prev.statuses.some(s => s.name === newItemName)) {
+                                newConfig.statuses = [...prev.statuses, newStatus];
+                            }
+                        }
+                    }
+                    return newConfig;
+                });
+                
+                handleCancelEdit();
+            };
+
+            const handleStartEdit = (item, index) => {
+                setEditingIndex(index);
+                if (activeTab === 'statuses') {
+                    setNewItemName(item.name);
+                    setNewStatusColor(item.color);
+                } else {
+                    setNewItemName(item);
+                }
+            };
+
+            const handleCancelEdit = () => {
+                setEditingIndex(null);
+                setNewItemName('');
+                setNewStatusColor('#000000');
+            };
+
+            const handleRemoveItem = (item, index) => {
+                if (activeTab === 'planos') {
+                    setLocalConfig(prev => ({ ...prev, planos: prev.planos.filter((_, i) => i !== index) }));
+                } else if (activeTab === 'designers') {
+                    setLocalConfig(prev => ({ ...prev, designers: prev.designers.filter((_, i) => i !== index) }));
+                } else if (activeTab === 'statuses') {
+                     setLocalConfig(prev => ({ ...prev, statuses: prev.statuses.filter((_, i) => i !== index) }));
+                }
+                
+                if (editingIndex === index) {
+                    handleCancelEdit();
+                }
+            };
+
+            const handleSave = () => {
+                onSaveConfig(localConfig);
+            };
+
+            // Switch tabs resets edit mode
+            const switchTab = (tab) => {
+                setActiveTab(tab);
+                handleCancelEdit();
+            };
+
+            const renderList = () => {
+                if (activeTab === 'statuses') {
+                    return (
+                        <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                            {localConfig.statuses.map((status, idx) => (
+                                <div key={idx} className={`flex items-center justify-between p-2 rounded border ${editingIndex === idx ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-300' : 'bg-gray-50 border-gray-200'}`}>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-6 h-6 rounded-full shadow-sm" style={{ backgroundColor: status.color }}></div>
+                                        <span className="font-medium text-gray-700">{status.name}</span>
+                                    </div>
+                                    <div className="flex gap-1">
+                                        <button onClick={() => handleStartEdit(status, idx)} className="text-gray-500 hover:bg-gray-200 p-1.5 rounded-full transition-colors" title="Editar">
+                                            <Pencil className="w-4 h-4" />
+                                        </button>
+                                        <button onClick={() => handleRemoveItem(status, idx)} className="text-red-500 hover:bg-red-50 p-1.5 rounded-full transition-colors" title="Eliminar">
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                }
+                
+                const list = activeTab === 'planos' ? localConfig.planos : localConfig.designers;
+                return (
+                    <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                        {list.map((item, idx) => (
+                            <div key={idx} className={`flex items-center justify-between p-2 rounded border ${editingIndex === idx ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-300' : 'bg-gray-50 border-gray-200'}`}>
+                                <span className="font-medium text-gray-700">{item}</span>
+                                <div className="flex gap-1">
+                                    <button onClick={() => handleStartEdit(item, idx)} className="text-gray-500 hover:bg-gray-200 p-1.5 rounded-full transition-colors" title="Editar">
+                                        <Pencil className="w-4 h-4" />
+                                    </button>
+                                    <button onClick={() => handleRemoveItem(item, idx)} className="text-red-500 hover:bg-red-50 p-1.5 rounded-full transition-colors" title="Eliminar">
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                );
+            };
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]">
+                        <div className="flex justify-between items-center p-5 border-b border-gray-100">
+                            <h2 className="text-xl font-bold text-gray-800">Configuración</h2>
+                            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
+                        
+                        <div className="flex border-b border-gray-200">
+                            <button 
+                                onClick={() => switchTab('planos')}
+                                className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'planos' ? 'border-corporate-cyan text-corporate-navy' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                            >
+                                Planos
+                            </button>
+                            <button 
+                                onClick={() => switchTab('designers')}
+                                className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'designers' ? 'border-corporate-cyan text-corporate-navy' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                            >
+                                Diseñadores
+                            </button>
+                            <button 
+                                onClick={() => switchTab('statuses')}
+                                className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'statuses' ? 'border-corporate-cyan text-corporate-navy' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                            >
+                                Estados
+                            </button>
+                        </div>
+
+                        <div className="p-6 flex-1 overflow-hidden flex flex-col">
+                            <div className="flex gap-2 mb-4">
+                                <input 
+                                    type="text" 
+                                    placeholder={activeTab === 'statuses' ? 'Nombre del estado' : `Nuevo ${activeTab === 'planos' ? 'plano' : 'diseñador'}`}
+                                    value={newItemName}
+                                    onChange={(e) => setNewItemName(e.target.value)}
+                                    className="flex-1 rounded-lg border-gray-300 border px-3 py-2 text-sm focus:ring-2 focus:ring-corporate-cyan focus:border-corporate-cyan outline-none bg-white text-gray-900"
+                                />
+                                {activeTab === 'statuses' && (
+                                    <div className="relative">
+                                        <input 
+                                            type="color" 
+                                            value={newStatusColor}
+                                            onChange={(e) => setNewStatusColor(e.target.value)}
+                                            className="w-10 h-10 rounded-lg cursor-pointer border border-gray-300"
+                                            title="Elegir color"
+                                        />
+                                    </div>
+                                )}
+                                
+                                {editingIndex !== null ? (
+                                    <>
+                                        <button 
+                                            onClick={handleSaveItem}
+                                            className="bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                                            title="Guardar edición"
+                                        >
+                                            <Check className="w-5 h-5" />
+                                        </button>
+                                        <button 
+                                            onClick={handleCancelEdit}
+                                            className="bg-gray-400 text-white px-3 py-2 rounded-lg hover:bg-gray-500 transition-colors"
+                                            title="Cancelar edición"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button 
+                                        onClick={handleSaveItem}
+                                        className="bg-corporate-cyan text-white px-4 py-2 rounded-lg hover:bg-cyan-600 transition-colors"
+                                        title="Añadir nuevo"
+                                    >
+                                        <Plus className="w-5 h-5" />
+                                    </button>
+                                )}
+                            </div>
+                            
+                            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                                {editingIndex !== null ? 'Editando elemento...' : 'Lista Actual'}
+                            </h3>
+                            {renderList()}
+                        </div>
+
+                        <div className="p-5 border-t border-gray-100 bg-gray-50 rounded-b-xl flex justify-end gap-3">
+                            <button onClick={onClose} className="px-5 py-2 rounded-lg text-gray-700 font-medium hover:bg-gray-200 transition-colors text-sm">
+                                Cancelar
+                            </button>
+                            <button onClick={handleSave} className="px-5 py-2 rounded-lg bg-corporate-navy text-white font-medium hover:bg-blue-900 transition-all text-sm">
+                                Guardar Cambios
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- ElementForm ---
+        const ElementForm = ({ initialData, onSave, onCancel, config }) => {
+            const fileInputRef = React.useRef(null);
+            const [isProcessing, setIsProcessing] = React.useState(false);
+            const [error, setError] = React.useState('');
+
+            const generateDate = () => formatDate(new Date());
+
+            const [formData, setFormData] = React.useState({
+                customId: '',
+                text: '',
+                plano: config.planos[0] || '',
+                content: '',
+                designer: config.designers[0] || '',
+                status: config.statuses[0]?.name || '',
+                imageUrl: '',
+                createdAt: generateDate(),
+            });
+
+            React.useEffect(() => {
+                if (initialData) {
+                    setFormData(initialData);
+                } else {
+                    setFormData(prev => ({ 
+                        ...prev, 
+                        createdAt: generateDate(),
+                        plano: config.planos[0] || '',
+                        designer: config.designers[0] || '',
+                        status: config.statuses[0]?.name || ''
+                    }));
+                }
+            }, [initialData, config]);
+
+            const handleChange = (e) => {
+                const { name, value } = e.target;
+                setFormData(prev => ({ ...prev, [name]: value }));
+            };
+
+            const handleImageUpload = (e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                    if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
+                        setError('Solo se permiten archivos JPG o PNG.');
+                        return;
+                    }
+                    setIsProcessing(true);
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        setFormData(prev => ({ ...prev, imageUrl: reader.result }));
+                        setError('');
+                        setIsProcessing(false);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                const elementToSave = {
+                    id: initialData?.id || crypto.randomUUID(),
+                    customId: formData.customId || 'Sin ID',
+                    text: formData.text || 'Sin texto',
+                    plano: formData.plano,
+                    content: formData.content || '',
+                    designer: formData.designer,
+                    status: formData.status,
+                    imageUrl: formData.imageUrl || '',
+                    createdAt: initialData?.createdAt || generateDate(),
+                    timestamp: initialData?.timestamp || Date.now(),
+                };
+                onSave(elementToSave);
+            };
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm overflow-y-auto">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh]">
+                        
+                        <div className="flex justify-between items-center p-6 border-b border-gray-100 sticky top-0 bg-corporate-navy z-10 rounded-t-xl text-white">
+                            <h2 className="text-2xl font-bold">
+                                {initialData ? 'Editar Elemento' : 'Nuevo Elemento'}
+                            </h2>
+                            <button onClick={onCancel} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                                <X className="w-6 h-6 text-white" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto">
+                            <form id="element-form" onSubmit={handleSubmit} className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-semibold text-gray-700">
+                                        Miniatura (Resolución Original 1920x1080)
+                                    </label>
+                                    <div 
+                                        className={`relative group border-2 border-dashed rounded-xl overflow-hidden aspect-video flex items-center justify-center bg-gray-50 cursor-pointer transition-all ${error && !formData.imageUrl ? 'border-red-400 bg-red-50' : 'border-gray-300 hover:border-corporate-cyan'}`}
+                                        onClick={() => !isProcessing && fileInputRef.current?.click()}
+                                    >
+                                        {formData.imageUrl ? (
+                                            <>
+                                                <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <span className="text-white font-medium flex items-center gap-2">
+                                                        <Upload className="w-5 h-5" /> Cambiar Imagen
+                                                    </span>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="text-center text-gray-400 group-hover:text-corporate-cyan transition-colors">
+                                                <ImageIcon className="w-12 h-12 mx-auto mb-2" />
+                                                <p className="text-sm">
+                                                    {isProcessing ? 'Procesando...' : 'Click para subir JPG/PNG'}
+                                                </p>
+                                            </div>
+                                        )}
+                                        <input 
+                                            type="file" 
+                                            ref={fileInputRef} 
+                                            onChange={handleImageUpload} 
+                                            accept="image/png, image/jpeg" 
+                                            className="hidden" 
+                                            disabled={isProcessing}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">ID</label>
+                                        <input type="text" name="customId" value={formData.customId} onChange={handleChange} placeholder="ej. DIS-001" className="w-full rounded-lg border-gray-300 border px-4 py-2 focus:ring-2 focus:ring-corporate-cyan focus:border-corporate-cyan outline-none transition-all bg-white" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Texto rótulo</label>
+                                        <input type="text" name="text" value={formData.text} onChange={handleChange} className="w-full rounded-lg border-gray-300 border px-4 py-2 focus:ring-2 focus:ring-corporate-cyan focus:border-corporate-cyan outline-none transition-all bg-white" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Plano</label>
+                                        <select name="plano" value={formData.plano} onChange={handleChange} className="w-full rounded-lg border-gray-300 border px-4 py-2 focus:ring-2 focus:ring-corporate-cyan focus:border-corporate-cyan outline-none bg-white">
+                                            {config.planos.map(p => <option key={p} value={p}>{p}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Diseñador</label>
+                                        <select name="designer" value={formData.designer} onChange={handleChange} className="w-full rounded-lg border-gray-300 border px-4 py-2 focus:ring-2 focus:ring-corporate-cyan focus:border-corporate-cyan outline-none bg-white">
+                                            {config.designers.map(d => <option key={d} value={d}>{d}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                                        <select name="status" value={formData.status} onChange={handleChange} className="w-full rounded-lg border-gray-300 border px-4 py-2 focus:ring-2 focus:ring-corporate-cyan focus:border-corporate-cyan outline-none bg-white">
+                                            {config.statuses.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Contenido Detallado</label>
+                                    <textarea name="content" value={formData.content} onChange={handleChange} rows={4} className="w-full rounded-lg border-gray-300 border px-4 py-2 focus:ring-2 focus:ring-corporate-cyan focus:border-corporate-cyan outline-none transition-all resize-none bg-white" />
+                                </div>
+
+                                {error && (
+                                    <div className="text-red-500 text-sm bg-red-50 p-3 rounded-lg border border-red-100">
+                                        {error}
+                                    </div>
+                                )}
+                            </form>
+                        </div>
+
+                        <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-xl flex justify-end gap-3 sticky bottom-0">
+                            <button type="button" onClick={onCancel} className="px-6 py-2 rounded-lg text-gray-700 font-medium hover:bg-gray-200 transition-colors">
+                                Cancelar
+                            </button>
+                            <button type="submit" form="element-form" disabled={isProcessing} className="px-6 py-2 rounded-lg bg-corporate-orange text-white font-medium hover:bg-orange-600 shadow-lg shadow-orange-500/20 transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                                {isProcessing ? 'Procesando...' : 'Guardar Elemento'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // 6. COMPONENT: APP
+        // ==========================================
+        const App = () => {
+            // -- State for Configuration --
+            // Initialize with defaults only
+            const [config, setConfig] = React.useState({
+                planos: DEFAULT_PLANOS,
+                designers: DEFAULT_DESIGNERS,
+                statuses: DEFAULT_STATUSES
+            });
+
+            const [elements, setElements] = React.useState([]);
+            const [loading, setLoading] = React.useState(true);
+            const [isFormOpen, setIsFormOpen] = React.useState(false);
+            const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
+            const [editingElement, setEditingElement] = React.useState(null);
+            const [viewerIndex, setViewerIndex] = React.useState(null);
+            const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
+
+            // Pagination state
+            const [currentPage, setCurrentPage] = React.useState(1);
+
+            const [filters, setFilters] = React.useState({
+                search: '',
+                plano: '',
+                designer: '',
+                status: '',
+                date: ''
+            });
+
+            React.useEffect(() => {
+                loadElements();
+                const handleClickOutside = () => setIsCalendarOpen(false);
+                document.addEventListener('click', handleClickOutside);
+                return () => document.removeEventListener('click', handleClickOutside);
+            }, []);
+
+            // Reset pagination when filters change
+            React.useEffect(() => {
+                setCurrentPage(1);
+            }, [filters]);
+
+            const getOptimizedImageUrl = (url) => {
+                if (!url) return '';
+                if (url.startsWith('data:')) return url;
+                let id = '';
+                const idMatch = url.match(/id=([a-zA-Z0-9_-]{25,})/);
+                if (idMatch) id = idMatch[1];
+                if (!id) {
+                    const pathMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]{25,})/);
+                    if (pathMatch) id = pathMatch[1];
+                }
+                if (id) {
+                    return `https://lh3.googleusercontent.com/d/${id}`;
+                }
+                return url;
+            };
+
+            const loadElements = async () => {
+                setLoading(true);
+                try {
+                    const data = await StorageService.getAll();
+                    if (Array.isArray(data)) {
+                        // 1. Separate Config from Normal Elements
+                        const configItems = data.filter(item => item.id === 'GLOBAL_CONFIG');
+                        const normalItems = data.filter(item => item.id !== 'GLOBAL_CONFIG');
+
+                        // 2. Load latest config if exists
+                        if (configItems.length > 0) {
+                            configItems.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                            try {
+                                const remoteConfig = JSON.parse(configItems[0].content);
+                                setConfig({
+                                    planos: remoteConfig.planos || DEFAULT_PLANOS,
+                                    designers: remoteConfig.designers || DEFAULT_DESIGNERS,
+                                    statuses: remoteConfig.statuses || DEFAULT_STATUSES
+                                });
+                            } catch (e) {
+                                console.error("Error parsing remote config", e);
+                            }
+                        }
+
+                        // 3. Set Elements (Sort Descending by Date Field, then Timestamp)
+                        const sorted = normalItems.sort((a, b) => {
+                            const dateA = parseDateString(a.createdAt)?.getTime() || 0;
+                            const dateB = parseDateString(b.createdAt)?.getTime() || 0;
+                            if (dateB !== dateA) return dateB - dateA;
+                            return (b.timestamp || 0) - (a.timestamp || 0);
+                        });
+                        setElements(sorted);
+                    }
+                } catch (error) {
+                    console.error("Failed to load elements", error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleSaveConfig = async (newConfig) => {
+                // Optimistic UI Update
+                setConfig(newConfig);
+                setIsSettingsOpen(false);
+                setLoading(true);
+
+                // Create a special element to store configuration
+                // We store the JSON string in the 'content' field
+                const configElement = {
+                    id: 'GLOBAL_CONFIG',
+                    customId: 'SYS',
+                    text: 'CONFIGURACIÓN DEL SISTEMA',
+                    plano: '-',
+                    designer: '-',
+                    status: '-',
+                    content: JSON.stringify(newConfig),
+                    imageUrl: '',
+                    createdAt: formatDate(new Date()),
+                    timestamp: Date.now()
+                };
+
+                await StorageService.save(configElement);
+                
+                // Reload to sync everything
+                setTimeout(() => { loadElements(); }, 2000);
+            };
+
+            const handleSave = async (element) => {
+                setElements(prev => {
+                    const exists = prev.findIndex(e => e.id === element.id);
+                    let newElements;
+                    if (exists >= 0) {
+                        newElements = [...prev];
+                        newElements[exists] = element;
+                    } else {
+                        newElements = [element, ...prev];
+                    }
+                    return newElements.sort((a, b) => {
+                        const dateA = parseDateString(a.createdAt)?.getTime() || 0;
+                        const dateB = parseDateString(b.createdAt)?.getTime() || 0;
+                        if (dateB !== dateA) return dateB - dateA;
+                        return (b.timestamp || 0) - (a.timestamp || 0);
+                    });
+                });
+                setIsFormOpen(false);
+                setEditingElement(null);
+                await StorageService.save(element);
+                setLoading(true);
+                setTimeout(() => { loadElements(); }, 3000); 
+            };
+
+            const handleEdit = (element) => {
+                setEditingElement(element);
+                setIsFormOpen(true);
+            };
+
+            const handleAddNew = () => {
+                setEditingElement(null);
+                setIsFormOpen(true);
+            };
+
+            const filteredElements = React.useMemo(() => {
+                const searchLower = filters.search.toLowerCase();
+                const filterDate = filters.date;
+                const filterPlano = filters.plano;
+                const filterDesigner = filters.designer;
+                const filterStatus = filters.status;
+
+                return elements.filter(el => {
+                    if (filterDate && el.createdAt !== filterDate) return false;
+                    if (filterPlano && el.plano !== filterPlano) return false;
+                    if (filterDesigner && el.designer !== filterDesigner) return false;
+                    if (filterStatus && el.status !== filterStatus) return false;
+
+                    if (searchLower) {
+                        return (
+                            (el.text && el.text.toLowerCase().includes(searchLower)) ||
+                            (el.customId && el.customId.toLowerCase().includes(searchLower)) ||
+                            (el.content && el.content.toLowerCase().includes(searchLower))
+                        );
+                    }
+
+                    return true;
+                });
+            }, [elements, filters]);
+
+            // Pagination Logic
+            const isDateFilterActive = !!filters.date;
+            const totalPages = Math.ceil(filteredElements.length / ITEMS_PER_PAGE);
+
+            const displayedElements = React.useMemo(() => {
+                if (isDateFilterActive) {
+                    return filteredElements;
+                }
+                const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+                return filteredElements.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+            }, [filteredElements, currentPage, isDateFilterActive]);
+
+            // Helpers for view
+            const getStatusColorInfo = (statusName) => {
+                const found = config.statuses.find(s => s.name === statusName);
+                return found ? found.color : '#94a3b8'; // default gray
+            };
+
+            const getFilterClass = (isActive) => `w-full px-3 py-2 rounded-lg border outline-none text-sm transition-colors ${
+                isActive 
+                ? 'bg-corporate-cyan/10 border-corporate-cyan text-corporate-navy font-bold ring-1 ring-corporate-cyan' 
+                : 'bg-white border-gray-300 focus:ring-2 focus:ring-corporate-cyan'
+            }`;
+
+            // Image Viewer Handlers
+            const handleView = (index) => {
+                // Adjust index based on pagination
+                const realIndex = isDateFilterActive ? index : ((currentPage - 1) * ITEMS_PER_PAGE) + index;
+                if (filteredElements[realIndex] && filteredElements[realIndex].imageUrl) {
+                     // We need to store the index relative to filteredElements to allow navigation
+                     setViewerIndex(realIndex);
+                }
+            };
+            const handleNextImage = (e) => {
+                e.stopPropagation();
+                if (viewerIndex !== null) {
+                    let nextIndex = (viewerIndex + 1) % filteredElements.length;
+                    while (!filteredElements[nextIndex].imageUrl && nextIndex !== viewerIndex) {
+                        nextIndex = (nextIndex + 1) % filteredElements.length;
+                    }
+                    setViewerIndex(nextIndex);
+                }
+            };
+            const handlePrevImage = (e) => {
+                e.stopPropagation();
+                if (viewerIndex !== null) {
+                    let prevIndex = (viewerIndex - 1 + filteredElements.length) % filteredElements.length;
+                    while (!filteredElements[prevIndex].imageUrl && prevIndex !== viewerIndex) {
+                         prevIndex = (prevIndex - 1 + filteredElements.length) % filteredElements.length;
+                    }
+                    setViewerIndex(prevIndex);
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-50 text-gray-900 pb-20">
+                    <nav className="bg-corporate-navy border-b border-white/10 sticky top-0 z-30 shadow-md">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <img src={DISTAL_LOGO_URL} alt="Distal Logo" className="h-12 object-contain" />
+                                <img src={CYL_LOGO_URL} alt="Castilla y León" className="h-10 w-auto object-contain rounded" />
+                                <div className="border-l border-white/20 pl-4 hidden sm:block">
+                                    <h1 className="text-xl font-bold text-white leading-tight">Trabajos de grafismo</h1>
+                                    <p className="text-corporate-cyan text-sm font-medium">Castilla y León</p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-2 md:gap-4">
+                                <button onClick={loadElements} className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all" title="Recargar datos">
+                                    <RefreshCw className={`w-6 h-6 ${loading ? 'animate-spin' : ''}`} />
+                                </button>
+                                <button onClick={() => setIsSettingsOpen(true)} className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all" title="Configuración">
+                                    <Settings className="w-6 h-6" />
+                                </button>
+                                <button onClick={handleAddNew} className="flex items-center gap-2 bg-corporate-orange hover:bg-orange-600 text-white px-3 md:px-5 py-2 md:py-2.5 rounded-lg font-bold transition-all shadow-lg active:scale-95 ml-2">
+                                    <Plus className="w-5 h-5" />
+                                    <span className="hidden md:inline">Nuevo Elemento</span>
+                                </button>
+                            </div>
+                        </div>
+                    </nav>
+
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+                            <div className="mb-6">
+                                <div className="relative group">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-corporate-navy">
+                                        <Search className="w-6 h-6" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar ID, Texto..."
+                                        value={filters.search}
+                                        onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                                        className={`w-full pl-12 pr-4 py-4 rounded-xl border-2 outline-none text-lg transition-all shadow-sm placeholder-gray-400 font-medium ${
+                                            filters.search 
+                                            ? 'bg-corporate-cyan/10 border-corporate-cyan text-corporate-navy ring-1 ring-corporate-cyan' 
+                                            : 'border-gray-200 bg-gray-50 focus:bg-white focus:border-corporate-cyan focus:ring-4 focus:ring-corporate-cyan/20'
+                                        }`}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <select 
+                                    value={filters.plano} 
+                                    onChange={(e) => setFilters(prev => ({ ...prev, plano: e.target.value }))} 
+                                    className={getFilterClass(!!filters.plano)}
+                                >
+                                    <option value="">Todos los Planos</option>
+                                    {config.planos.map(p => <option key={p} value={p}>{p}</option>)}
+                                </select>
+
+                                <select 
+                                    value={filters.designer} 
+                                    onChange={(e) => setFilters(prev => ({ ...prev, designer: e.target.value }))} 
+                                    className={getFilterClass(!!filters.designer)}
+                                >
+                                    <option value="">Todos los Diseñadores</option>
+                                    {config.designers.map(d => <option key={d} value={d}>{d}</option>)}
+                                </select>
+
+                                <select 
+                                    value={filters.status} 
+                                    onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))} 
+                                    className={getFilterClass(!!filters.status)}
+                                >
+                                    <option value="">Todos los Estados</option>
+                                    {config.statuses.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                                </select>
+
+                                {/* Custom Date Filter Input */}
+                                <div className="relative">
+                                    <div className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none ${filters.date ? 'text-corporate-navy' : 'text-gray-400'}`}>
+                                        <Calendar className="w-4 h-4" />
+                                    </div>
+                                    <div 
+                                        className={getFilterClass(!!filters.date) + " cursor-pointer flex items-center h-[38px] pl-9 pr-8"}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setIsCalendarOpen(!isCalendarOpen);
+                                        }}
+                                    >
+                                        {filters.date || "Filtrar por fecha"}
+                                    </div>
+                                    
+                                    {filters.date && (
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setFilters(prev => ({ ...prev, date: '' }));
+                                            }}
+                                            className="absolute inset-y-0 right-0 pr-2 flex items-center justify-center text-corporate-navy hover:text-red-500 transition-colors z-10 w-8 h-full"
+                                            title="Limpiar fecha"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    )}
+
+                                    {/* Calendar Popup */}
+                                    {isCalendarOpen && (
+                                        <CalendarWidget 
+                                            selectedDateStr={filters.date}
+                                            onChange={(newDate) => setFilters(prev => ({ ...prev, date: newDate }))}
+                                            onClose={() => setIsCalendarOpen(false)}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {loading && elements.length === 0 ? (
+                            <div className="flex justify-center items-center h-64">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-corporate-cyan"></div>
+                            </div>
+                        ) : filteredElements.length === 0 ? (
+                            <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-300">
+                                <Filter className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                                <h3 className="text-lg font-medium text-gray-900">No hay elementos</h3>
+                                <p className="text-gray-500">Prueba ajustando los filtros o crea uno nuevo.</p>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {displayedElements.map((element, index) => (
+                                        <div key={element.id} className="bg-white rounded-b-xl rounded-t-none shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300 group flex flex-col">
+                                            <div className="relative aspect-video w-full overflow-hidden bg-gray-100">
+                                                {element.imageUrl ? (
+                                                    <img 
+                                                        src={getOptimizedImageUrl(element.imageUrl)} 
+                                                        alt={element.text} 
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                        loading="lazy"
+                                                        onError={(e) => {
+                                                            e.target.style.display = 'none';
+                                                            e.target.parentElement.classList.add('flex', 'items-center', 'justify-center', 'bg-gray-200');
+                                                            if (!e.target.parentElement.querySelector('.error-msg')) {
+                                                                const span = document.createElement('span');
+                                                                span.className = 'text-gray-400 text-sm error-msg';
+                                                                span.innerText = 'Sin vista previa';
+                                                                e.target.parentElement.appendChild(span);
+                                                            }
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400">
+                                                        <div className="text-center">
+                                                            <Hourglass className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                                                            <span className="text-sm font-medium">Sin Imagen</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                
+                                                <div className="absolute inset-0 bg-corporate-navy/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 pointer-events-none">
+                                                    <button onClick={() => handleEdit(element)} className="pointer-events-auto bg-white text-corporate-navy px-4 py-2 rounded-lg font-bold flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all shadow-lg hover:bg-corporate-cyan hover:text-white">
+                                                        <Edit3 className="w-4 h-4" /> Editar
+                                                    </button>
+                                                    {element.imageUrl && (
+                                                        <button onClick={() => handleView(index)} className="pointer-events-auto bg-white text-corporate-navy px-4 py-2 rounded-lg font-bold flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all delay-75 shadow-lg hover:bg-corporate-orange hover:text-white">
+                                                            <Eye className="w-4 h-4" /> Ver
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="p-5 flex-1 flex flex-col">
+                                                {/* Header: ID Left, Date Right */}
+                                                <div className="flex justify-between items-center mb-3">
+                                                    <span className="font-mono text-sm font-bold text-gray-700">
+                                                        {element.customId || '---'}
+                                                    </span>
+                                                    <div className="flex items-center text-xs text-gray-500">
+                                                        <Calendar className="w-3 h-3 mr-1" />
+                                                        {element.createdAt}
+                                                    </div>
+                                                </div>
+
+                                                <h3 className="text-lg font-bold text-gray-900 mb-4 line-clamp-1 group-hover:text-corporate-orange transition-colors" title={element.text}>
+                                                    {element.text || 'Sin título'}
+                                                </h3>
+
+                                                {/* Tags Row: Plano+Designer Left, Status Right */}
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="flex flex-wrap gap-2">
+                                                        <span className="inline-flex items-center text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded border border-gray-200">
+                                                            <Camera className="w-3 h-3 mr-1 text-corporate-cyan" />
+                                                            {element.plano}
+                                                        </span>
+                                                        <span className="inline-flex items-center text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded border border-gray-200">
+                                                            <User className="w-3 h-3 mr-1 text-corporate-cyan" />
+                                                            {element.designer}
+                                                        </span>
+                                                    </div>
+                                                    <span 
+                                                        className="inline-flex items-center px-2 py-1 rounded-md text-xs font-bold text-white shadow-sm ml-2 whitespace-nowrap"
+                                                        style={{ backgroundColor: getStatusColorInfo(element.status) }}
+                                                    >
+                                                        {element.status}
+                                                    </span>
+                                                </div>
+
+                                                <p className="text-sm text-gray-600 line-clamp-3 mb-4 flex-1">
+                                                    {element.content || <span className="italic text-gray-400">Sin descripción detallada.</span>}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Pagination Controls */}
+                                {!isDateFilterActive && totalPages > 1 && (
+                                    <div className="flex justify-center items-center gap-4 mt-12">
+                                        <button 
+                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                            disabled={currentPage === 1}
+                                            className="flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            <ChevronLeft className="w-5 h-5 mr-1" />
+                                            Anterior
+                                        </button>
+                                        
+                                        <span className="text-sm font-medium text-gray-600">
+                                            Página <span className="text-corporate-navy font-bold">{currentPage}</span> de <span className="text-corporate-navy font-bold">{totalPages}</span>
+                                        </span>
+
+                                        <button 
+                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                            disabled={currentPage === totalPages}
+                                            className="flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            Siguiente
+                                            <ChevronRight className="w-5 h-5 ml-1" />
+                                        </button>
+                                    </div>
+                                )}
+
+                                {isDateFilterActive && filteredElements.length > ITEMS_PER_PAGE && (
+                                    <div className="mt-8 text-center">
+                                        <p className="text-sm text-gray-500 italic">Mostrando todos los resultados del día {filters.date}</p>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </main>
+
+                    {/* Image Viewer */}
+                    {viewerIndex !== null && filteredElements[viewerIndex] && (
+                        <div 
+                            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center backdrop-blur-sm"
+                            onClick={() => setViewerIndex(null)}
+                        >
+                            <button onClick={() => setViewerIndex(null)} className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors">
+                                <X className="w-8 h-8" />
+                            </button>
+                            <button onClick={handlePrevImage} className="absolute left-4 p-2 rounded-full bg-black/50 text-white hover:bg-white hover:text-black transition-all">
+                                <ChevronLeft className="w-8 h-8" />
+                            </button>
+                            <img 
+                                src={getOptimizedImageUrl(filteredElements[viewerIndex].imageUrl)} 
+                                alt="Full screen" 
+                                className="max-w-full max-h-full object-contain p-4"
+                                onClick={(e) => e.stopPropagation()} 
+                            />
+                            <button onClick={handleNextImage} className="absolute right-4 p-2 rounded-full bg-black/50 text-white hover:bg-white hover:text-black transition-all">
+                                <ChevronRight className="w-8 h-8" />
+                            </button>
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/80 text-sm font-medium px-4 py-2 bg-black/50 rounded-full">
+                                {filteredElements[viewerIndex].text} ({viewerIndex + 1} / {filteredElements.length})
+                            </div>
+                        </div>
+                    )}
+
+                    {isSettingsOpen && (
+                        <SettingsModal 
+                            config={config} 
+                            onSaveConfig={handleSaveConfig} 
+                            onClose={() => setIsSettingsOpen(false)} 
+                        />
+                    )}
+
+                    {isFormOpen && (
+                        <ElementForm
+                            initialData={editingElement}
+                            onSave={handleSave}
+                            onCancel={() => {
+                                setIsFormOpen(false);
+                                setEditingElement(null);
+                            }}
+                            config={config}
+                        />
+                    )}
+                </div>
+            );
+        };
+
+        // ==========================================
+        // 7. INITIALIZATION
+        // ==========================================
+        const rootElement = document.getElementById('root');
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(
+            <React.StrictMode>
+                <App />
+            </React.StrictMode>
+        );
+    </script>
+</body>
+</html>
