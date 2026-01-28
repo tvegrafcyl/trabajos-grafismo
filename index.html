@@ -105,6 +105,8 @@
         const Trash2 = (props) => <Icon d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2M10 11v6M14 11v6" {...props} />;
         const Check = (props) => <Icon d="M20 6 9 17l-5-5" {...props} />;
         const Pencil = (props) => <Icon d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" {...props} />;
+        const ArrowUp = (props) => <Icon d="M12 19V5M5 12l7-7 7 7" {...props} />;
+        const ArrowDown = (props) => <Icon d="M12 5v14M5 12l7 7 7-7" {...props} />;
 
         // ==========================================
         // 2. CONSTANTS & DEFAULTS
@@ -301,7 +303,8 @@
         // --- Settings Modal ---
         const SettingsModal = ({ config, onSaveConfig, onClose }) => {
             const [localConfig, setLocalConfig] = React.useState(config);
-            const [activeTab, setActiveTab] = React.useState('planos'); // planos, designers, statuses, qr
+            // Default to QR tab as requested
+            const [activeTab, setActiveTab] = React.useState('qr'); // qr, planos, designers, statuses
             
             const [newItemName, setNewItemName] = React.useState('');
             const [newStatusColor, setNewStatusColor] = React.useState('#000000');
@@ -384,6 +387,32 @@
                 }
             };
 
+            const handleMoveItem = (index, direction) => {
+                // direction: -1 (up), 1 (down)
+                setLocalConfig(prev => {
+                    const newConfig = { ...prev };
+                    let list = [];
+                    let listName = '';
+
+                    if (activeTab === 'planos') listName = 'planos';
+                    else if (activeTab === 'designers') listName = 'designers';
+                    else if (activeTab === 'statuses') listName = 'statuses';
+
+                    if (!listName) return prev;
+                    
+                    list = [...newConfig[listName]];
+
+                    if (direction === -1 && index > 0) {
+                        [list[index], list[index-1]] = [list[index-1], list[index]];
+                    } else if (direction === 1 && index < list.length - 1) {
+                        [list[index], list[index+1]] = [list[index+1], list[index]];
+                    }
+
+                    newConfig[listName] = list;
+                    return newConfig;
+                });
+            };
+
             const handleSave = () => {
                 onSaveConfig(localConfig);
             };
@@ -404,7 +433,23 @@
                                         <div className="w-6 h-6 rounded-full shadow-sm" style={{ backgroundColor: status.color }}></div>
                                         <span className="font-medium text-gray-700">{status.name}</span>
                                     </div>
-                                    <div className="flex gap-1">
+                                    <div className="flex gap-1 items-center">
+                                        <div className="flex flex-col mr-2 border-r border-gray-200 pr-2">
+                                            <button 
+                                                onClick={() => handleMoveItem(idx, -1)} 
+                                                className="text-gray-400 hover:text-corporate-navy disabled:opacity-30"
+                                                disabled={idx === 0}
+                                            >
+                                                <ArrowUp className="w-4 h-4" />
+                                            </button>
+                                            <button 
+                                                onClick={() => handleMoveItem(idx, 1)} 
+                                                className="text-gray-400 hover:text-corporate-navy disabled:opacity-30"
+                                                disabled={idx === localConfig.statuses.length - 1}
+                                            >
+                                                <ArrowDown className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                         <button onClick={() => handleStartEdit(status, idx)} className="text-gray-500 hover:bg-gray-200 p-1.5 rounded-full transition-colors" title="Editar">
                                             <Pencil className="w-4 h-4" />
                                         </button>
@@ -424,7 +469,23 @@
                         {list.map((item, idx) => (
                             <div key={idx} className={`flex items-center justify-between p-2 rounded border ${editingIndex === idx ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-300' : 'bg-gray-50 border-gray-200'}`}>
                                 <span className="font-medium text-gray-700">{item}</span>
-                                <div className="flex gap-1">
+                                <div className="flex gap-1 items-center">
+                                    <div className="flex flex-col mr-2 border-r border-gray-200 pr-2">
+                                        <button 
+                                            onClick={() => handleMoveItem(idx, -1)} 
+                                            className="text-gray-400 hover:text-corporate-navy disabled:opacity-30"
+                                            disabled={idx === 0}
+                                        >
+                                            <ArrowUp className="w-4 h-4" />
+                                        </button>
+                                        <button 
+                                            onClick={() => handleMoveItem(idx, 1)} 
+                                            className="text-gray-400 hover:text-corporate-navy disabled:opacity-30"
+                                            disabled={idx === list.length - 1}
+                                        >
+                                            <ArrowDown className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                     <button onClick={() => handleStartEdit(item, idx)} className="text-gray-500 hover:bg-gray-200 p-1.5 rounded-full transition-colors" title="Editar">
                                         <Pencil className="w-4 h-4" />
                                     </button>
@@ -449,6 +510,12 @@
                         </div>
                         
                         <div className="flex border-b border-gray-200">
+                             <button 
+                                onClick={() => switchTab('qr')}
+                                className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'qr' ? 'border-corporate-cyan text-corporate-navy' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                            >
+                                QR
+                            </button>
                             <button 
                                 onClick={() => switchTab('planos')}
                                 className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'planos' ? 'border-corporate-cyan text-corporate-navy' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
@@ -467,22 +534,16 @@
                             >
                                 Estados
                             </button>
-                            <button 
-                                onClick={() => switchTab('qr')}
-                                className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'qr' ? 'border-corporate-cyan text-corporate-navy' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                            >
-                                QR
-                            </button>
                         </div>
 
                         <div className="p-6 flex-1 overflow-hidden flex flex-col">
                             {activeTab === 'qr' ? (
-                                <div className="flex flex-col items-center justify-center h-full animate-fade-in">
-                                    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4">
+                                <div className="flex flex-col items-center justify-center h-full animate-fade-in py-8">
+                                    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6">
                                         <img 
                                             src="https://lh3.googleusercontent.com/d/1W2Xq8ks-vExsRqxtMPgs9CNGPWhmAHqx" 
                                             alt="Código QR de acceso" 
-                                            className="w-64 h-64 object-contain"
+                                            className="w-80 h-80 object-contain"
                                         />
                                     </div>
                                     <p className="text-gray-500 text-sm text-center max-w-xs">
@@ -547,14 +608,17 @@
                             )}
                         </div>
 
-                        <div className="p-5 border-t border-gray-100 bg-gray-50 rounded-b-xl flex justify-end gap-3">
-                            <button onClick={onClose} className="px-5 py-2 rounded-lg text-gray-700 font-medium hover:bg-gray-200 transition-colors text-sm">
-                                Cancelar
-                            </button>
-                            <button onClick={handleSave} className="px-5 py-2 rounded-lg bg-corporate-navy text-white font-medium hover:bg-blue-900 transition-all text-sm">
-                                Guardar Cambios
-                            </button>
-                        </div>
+                        {/* Footer only visible if NOT on QR tab */}
+                        {activeTab !== 'qr' && (
+                            <div className="p-5 border-t border-gray-100 bg-gray-50 rounded-b-xl flex justify-end gap-3">
+                                <button onClick={onClose} className="px-5 py-2 rounded-lg text-gray-700 font-medium hover:bg-gray-200 transition-colors text-sm">
+                                    Cancelar
+                                </button>
+                                <button onClick={handleSave} className="px-5 py-2 rounded-lg bg-corporate-navy text-white font-medium hover:bg-blue-900 transition-all text-sm">
+                                    Guardar Cambios
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             );
@@ -569,7 +633,7 @@
             const generateDate = () => formatDate(new Date());
 
             const [formData, setFormData] = React.useState({
-                customId: '',
+                // customId removed
                 text: '',
                 plano: config.planos[0] || '',
                 content: '',
@@ -620,7 +684,7 @@
                 e.preventDefault();
                 const elementToSave = {
                     id: initialData?.id || crypto.randomUUID(),
-                    customId: formData.customId || 'Sin ID',
+                    // customId removed from logic
                     text: formData.text || 'Sin texto',
                     plano: formData.plano,
                     content: formData.content || '',
@@ -685,10 +749,7 @@
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">ID</label>
-                                        <input type="text" name="customId" value={formData.customId} onChange={handleChange} placeholder="ej. DIS-001" className="w-full rounded-lg border-gray-300 border px-4 py-2 focus:ring-2 focus:ring-corporate-cyan focus:border-corporate-cyan outline-none transition-all bg-white" />
-                                    </div>
+                                    {/* ID Field Removed */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Texto rótulo</label>
                                         <input type="text" name="text" value={formData.text} onChange={handleChange} className="w-full rounded-lg border-gray-300 border px-4 py-2 focus:ring-2 focus:ring-corporate-cyan focus:border-corporate-cyan outline-none transition-all bg-white" />
@@ -714,7 +775,7 @@
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Contenido Detallado</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Contenido</label>
                                     <textarea name="content" value={formData.content} onChange={handleChange} rows={4} className="w-full rounded-lg border-gray-300 border px-4 py-2 focus:ring-2 focus:ring-corporate-cyan focus:border-corporate-cyan outline-none transition-all resize-none bg-white" />
                                 </div>
 
@@ -915,7 +976,7 @@
                     if (searchLower) {
                         return (
                             (el.text && el.text.toLowerCase().includes(searchLower)) ||
-                            (el.customId && el.customId.toLowerCase().includes(searchLower)) ||
+                            // customId removed from search
                             (el.content && el.content.toLowerCase().includes(searchLower))
                         );
                     }
@@ -1015,7 +1076,7 @@
                                     </div>
                                     <input
                                         type="text"
-                                        placeholder="Buscar ID, Texto..."
+                                        placeholder="Buscar Texto..."
                                         value={filters.search}
                                         onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                                         className={`w-full pl-12 pr-4 py-4 rounded-xl border-2 outline-none text-lg transition-all shadow-sm placeholder-gray-400 font-medium ${
@@ -1109,8 +1170,9 @@
                             <>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {displayedElements.map((element, index) => (
-                                        <div key={element.id} className="bg-white rounded-b-xl rounded-t-none shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300 group flex flex-col">
-                                            <div className="relative aspect-video w-full overflow-hidden bg-gray-100">
+                                        <div key={element.id} className="bg-white rounded-b-xl rounded-t-none shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300 flex flex-col">
+                                            {/* 'group' class moved here to image container so hover effect is local */}
+                                            <div className="relative aspect-video w-full overflow-hidden bg-gray-100 group">
                                                 {element.imageUrl ? (
                                                     <img 
                                                         src={getOptimizedImageUrl(element.imageUrl)} 
@@ -1149,19 +1211,16 @@
                                                 </div>
                                             </div>
 
-                                            <div className="p-5 flex-1 flex flex-col">
-                                                {/* Header: ID Left, Date Right */}
-                                                <div className="flex justify-between items-center mb-3">
-                                                    <span className="font-mono text-sm font-bold text-gray-700">
-                                                        {element.customId || '---'}
-                                                    </span>
-                                                    <div className="flex items-center text-xs text-gray-500">
+                                            <div className="p-5 flex-1 flex flex-col group-hover:bg-gray-50 transition-colors">
+                                                {/* Header: Date Right (ID Removed) */}
+                                                <div className="flex justify-end items-center mb-3">
+                                                    <div className="flex items-center text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                                                         <Calendar className="w-3 h-3 mr-1" />
                                                         {element.createdAt}
                                                     </div>
                                                 </div>
 
-                                                <h3 className="text-lg font-bold text-gray-900 mb-4 line-clamp-1 group-hover:text-corporate-orange transition-colors" title={element.text}>
+                                                <h3 className="text-lg font-bold text-gray-900 mb-4 line-clamp-1 hover:text-corporate-orange transition-colors" title={element.text}>
                                                     {element.text || 'Sin título'}
                                                 </h3>
 
@@ -1186,7 +1245,7 @@
                                                 </div>
 
                                                 <p className="text-sm text-gray-600 line-clamp-3 mb-4 flex-1">
-                                                    {element.content || <span className="italic text-gray-400">Sin descripción detallada.</span>}
+                                                    {element.content || <span className="italic text-gray-400">Sin contenido.</span>}
                                                 </p>
                                             </div>
                                         </div>
@@ -1250,7 +1309,9 @@
                             <button onClick={handleNextImage} className="absolute right-4 p-2 rounded-full bg-black/50 text-white hover:bg-white hover:text-black transition-all">
                                 <ChevronRight className="w-8 h-8" />
                             </button>
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/80 text-sm font-medium px-4 py-2 bg-black/50 rounded-full">
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/80 text-sm font-medium px-4 py-2 bg-black/50 rounded-full whitespace-nowrap">
+                                <span className="text-corporate-cyan font-bold">{filteredElements[viewerIndex].plano}</span>
+                                <span className="mx-2">|</span>
                                 {filteredElements[viewerIndex].text} ({viewerIndex + 1} / {filteredElements.length})
                             </div>
                         </div>
