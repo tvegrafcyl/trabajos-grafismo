@@ -187,6 +187,23 @@
                     }
                 }
                 return element;
+            },
+
+            async delete(elementId) {
+                if (API_URL) {
+                    try {
+                        // Send a request with action: 'delete'
+                        // This assumes the backend can handle it, or at least we are diligent about cleaning local state.
+                        await fetch(API_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            body: JSON.stringify({ id: elementId, action: 'delete' })
+                        });
+                    } catch (e) {
+                        console.error("Fallo al eliminar:", e);
+                    }
+                }
+                return true;
             }
         };
 
@@ -625,7 +642,7 @@
         };
 
         // --- ElementForm ---
-        const ElementForm = ({ initialData, onSave, onCancel, config }) => {
+        const ElementForm = ({ initialData, onSave, onDelete, onCancel, config }) => {
             const fileInputRef = React.useRef(null);
             const [isProcessing, setIsProcessing] = React.useState(false);
             const [error, setError] = React.useState('');
@@ -695,6 +712,12 @@
                     timestamp: initialData?.timestamp || Date.now(),
                 };
                 onSave(elementToSave);
+            };
+
+            const handleDelete = () => {
+                if (window.confirm("¿Estás seguro de que quieres eliminar este elemento?")) {
+                    onDelete(initialData);
+                }
             };
 
             return (
@@ -787,13 +810,27 @@
                             </form>
                         </div>
 
-                        <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-xl flex justify-end gap-3 sticky bottom-0">
-                            <button type="button" onClick={onCancel} className="px-6 py-2 rounded-lg text-gray-700 font-medium hover:bg-gray-200 transition-colors">
-                                Cancelar
-                            </button>
-                            <button type="submit" form="element-form" disabled={isProcessing} className="px-6 py-2 rounded-lg bg-corporate-orange text-white font-medium hover:bg-orange-600 shadow-lg shadow-orange-500/20 transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
-                                {isProcessing ? 'Procesando...' : 'Guardar Elemento'}
-                            </button>
+                        <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-xl flex justify-between items-center sticky bottom-0">
+                            <div>
+                                {initialData && (
+                                    <button 
+                                        type="button" 
+                                        onClick={handleDelete} 
+                                        className="flex items-center gap-2 px-6 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors shadow-sm"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                        Eliminar
+                                    </button>
+                                )}
+                            </div>
+                            <div className="flex gap-3">
+                                <button type="button" onClick={onCancel} className="px-6 py-2 rounded-lg text-gray-700 font-medium hover:bg-gray-200 transition-colors">
+                                    Cancelar
+                                </button>
+                                <button type="submit" form="element-form" disabled={isProcessing} className="px-6 py-2 rounded-lg bg-corporate-orange text-white font-medium hover:bg-orange-600 shadow-lg shadow-orange-500/20 transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    {isProcessing ? 'Procesando...' : 'Guardar Elemento'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -950,6 +987,16 @@
                 setTimeout(() => { loadElements(); }, 3000); 
             };
 
+            const handleDeleteItem = async (element) => {
+                // Update Local UI
+                setElements(prev => prev.filter(e => e.id !== element.id));
+                setIsFormOpen(false);
+                setEditingElement(null);
+
+                // Attempt Backend Delete
+                await StorageService.delete(element.id);
+            };
+
             const handleEdit = (element) => {
                 setEditingElement(element);
                 setIsFormOpen(true);
@@ -985,12 +1032,32 @@
                 });
             }, [elements, filters]);
 
+            // Date Navigation Logic
+            const availableDates = React.useMemo(() => {
+                const uniqueDates = [...new Set(elements.map(e => e.createdAt))].sort((a, b) => {
+                    const da = parseDateString(a);
+                    const db = parseDateString(b);
+                    return da - db;
+                });
+                return uniqueDates;
+            }, [elements]);
+
+            const getAdjacentDates = (currentDateStr) => {
+                const idx = availableDates.indexOf(currentDateStr);
+                if (idx === -1) return { prev: null, next: null };
+                return {
+                    prev: idx > 0 ? availableDates[idx - 1] : null,
+                    next: idx < availableDates.length - 1 ? availableDates[idx + 1] : null
+                };
+            };
+
             // Pagination Logic
             const isDateFilterActive = !!filters.date;
             const totalPages = Math.ceil(filteredElements.length / ITEMS_PER_PAGE);
 
             const displayedElements = React.useMemo(() => {
                 if (isDateFilterActive) {
+                    // Show all elements if date filter is active (Goal 3)
                     return filteredElements;
                 }
                 const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -1038,6 +1105,9 @@
                     setViewerIndex(prevIndex);
                 }
             };
+            
+            // Calculate adjacent dates for navigation buttons
+            const { prev: prevDate, next: nextDate } = isDateFilterActive ? getAdjacentDates(filters.date) : { prev: null, next: null };
 
             return (
                 <div className="min-h-screen bg-gray-50 text-gray-900 pb-20">
@@ -1212,8 +1282,12 @@
                                             </div>
 
                                             <div className="p-5 flex-1 flex flex-col group-hover:bg-gray-50 transition-colors">
-                                                {/* Header: Date Right (ID Removed) */}
-                                                <div className="flex justify-end items-center mb-3">
+                                                {/* Header: Plano Left, Date Right */}
+                                                <div className="flex justify-between items-center mb-3">
+                                                    <span className="inline-flex items-center text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded border border-gray-200">
+                                                        <Camera className="w-3 h-3 mr-1 text-corporate-cyan" />
+                                                        {element.plano}
+                                                    </span>
                                                     <div className="flex items-center text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                                                         <Calendar className="w-3 h-3 mr-1" />
                                                         {element.createdAt}
@@ -1224,13 +1298,9 @@
                                                     {element.text || 'Sin título'}
                                                 </h3>
 
-                                                {/* Tags Row: Plano+Designer Left, Status Right */}
+                                                {/* Tags Row: Designer Left, Status Right */}
                                                 <div className="flex items-center justify-between mb-4">
                                                     <div className="flex flex-wrap gap-2">
-                                                        <span className="inline-flex items-center text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded border border-gray-200">
-                                                            <Camera className="w-3 h-3 mr-1 text-corporate-cyan" />
-                                                            {element.plano}
-                                                        </span>
                                                         <span className="inline-flex items-center text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded border border-gray-200">
                                                             <User className="w-3 h-3 mr-1 text-corporate-cyan" />
                                                             {element.designer}
@@ -1252,34 +1322,67 @@
                                     ))}
                                 </div>
 
-                                {/* Pagination Controls */}
-                                {!isDateFilterActive && totalPages > 1 && (
-                                    <div className="flex justify-center items-center gap-4 mt-12">
+                                {/* Pagination OR Date Navigation */}
+                                {!isDateFilterActive ? (
+                                    totalPages > 1 && (
+                                        <div className="flex justify-center items-center gap-4 mt-12">
+                                            <button 
+                                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                disabled={currentPage === 1}
+                                                className="flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                            >
+                                                <ChevronLeft className="w-5 h-5 mr-1" />
+                                                Anterior
+                                            </button>
+                                            
+                                            <span className="text-sm font-medium text-gray-600">
+                                                Página <span className="text-corporate-navy font-bold">{currentPage}</span> de <span className="text-corporate-navy font-bold">{totalPages}</span>
+                                            </span>
+
+                                            <button 
+                                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                disabled={currentPage === totalPages}
+                                                className="flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                            >
+                                                Siguiente
+                                                <ChevronRight className="w-5 h-5 ml-1" />
+                                            </button>
+                                        </div>
+                                    )
+                                ) : (
+                                    /* DATE NAVIGATION: Show buttons to jump to previous/next available day */
+                                    <div className="flex justify-center items-center gap-4 mt-12 pb-8">
                                         <button 
-                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                            disabled={currentPage === 1}
-                                            className="flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                            onClick={() => prevDate && setFilters(prev => ({ ...prev, date: prevDate }))}
+                                            disabled={!prevDate}
+                                            className="flex items-center gap-2 px-6 py-3 rounded-xl border border-corporate-navy/20 bg-white text-corporate-navy hover:bg-corporate-cyan/5 hover:border-corporate-cyan disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm group"
                                         >
-                                            <ChevronLeft className="w-5 h-5 mr-1" />
-                                            Anterior
+                                            <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                                            <div className="text-left">
+                                                <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Día Anterior</div>
+                                                <div className="font-bold">{prevDate || '---'}</div>
+                                            </div>
                                         </button>
                                         
-                                        <span className="text-sm font-medium text-gray-600">
-                                            Página <span className="text-corporate-navy font-bold">{currentPage}</span> de <span className="text-corporate-navy font-bold">{totalPages}</span>
-                                        </span>
+                                        <div className="px-4 py-2 bg-corporate-navy text-white rounded-lg text-sm font-bold shadow-md">
+                                            {filters.date}
+                                        </div>
 
                                         <button 
-                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                            disabled={currentPage === totalPages}
-                                            className="flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                            onClick={() => nextDate && setFilters(prev => ({ ...prev, date: nextDate }))}
+                                            disabled={!nextDate}
+                                            className="flex items-center gap-2 px-6 py-3 rounded-xl border border-corporate-navy/20 bg-white text-corporate-navy hover:bg-corporate-cyan/5 hover:border-corporate-cyan disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm group"
                                         >
-                                            Siguiente
-                                            <ChevronRight className="w-5 h-5 ml-1" />
+                                            <div className="text-right">
+                                                <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Día Siguiente</div>
+                                                <div className="font-bold">{nextDate || '---'}</div>
+                                            </div>
+                                            <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                                         </button>
                                     </div>
                                 )}
 
-                                {isDateFilterActive && filteredElements.length > ITEMS_PER_PAGE && (
+                                {isDateFilterActive && !prevDate && !nextDate && filteredElements.length > ITEMS_PER_PAGE && (
                                     <div className="mt-8 text-center">
                                         <p className="text-sm text-gray-500 italic">Mostrando todos los resultados del día {filters.date}</p>
                                     </div>
@@ -1329,6 +1432,7 @@
                         <ElementForm
                             initialData={editingElement}
                             onSave={handleSave}
+                            onDelete={handleDeleteItem}
                             onCancel={() => {
                                 setIsFormOpen(false);
                                 setEditingElement(null);
